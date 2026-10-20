@@ -1,0 +1,13 @@
+# tuios session pill for starship
+# paste into ~/.config/starship.toml and add ${custom.tuios} to format or right_format
+
+[custom.tuios]
+command = 'tuios ls --json 2>/dev/null | jq -r "[.[] | select(.saved | not)] | if length > 0 then (length | tostring) + (if any(.attached) then \"\" else \" detached\" end) else empty end"'
+when = true
+shell = ["sh"]
+symbol = "tuios"
+# rounded purple pill, needs a nerd font for the caps
+format = '([](fg:#af87ff)[$symbol $output](fg:#1e1e1e bg:#af87ff)[](fg:#af87ff) )'
+
+# muted take: grey pill, purple text
+# format = '([](fg:#4a4a4a)[$symbol $output](fg:#af87ff bg:#4a4a4a)[](fg:#4a4a4a) )'
