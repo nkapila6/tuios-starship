@@ -1,13 +1,31 @@
-# tuios session pill for starship
-# paste into ~/.config/starship.toml and add ${custom.tuios} to format or right_format
+# tuios pills for starship
+# paste into ~/.config/starship.toml and add them to format or right_format:
+#   ${custom.tuios_agents}${custom.tuios}${custom.tuios_here}
 
+# outside tuios: how many sessions are running
 [custom.tuios]
 command = 'tuios ls --json 2>/dev/null | jq -r "[.[] | select(.saved | not)] | if length > 0 then (length | tostring) + (if any(.attached) then \"\" else \" detached\" end) else empty end"'
-when = true
+when = 'test -z "$TUIOS_PANE_ID$TUIOS_SESSION"'
 shell = ["sh"]
 symbol = "tuios"
-# rounded purple pill, needs a nerd font for the caps
 format = '([](fg:#af87ff)[$symbol $output](fg:#1e1e1e bg:#af87ff)[](fg:#af87ff) )'
 
-# muted take: grey pill, purple text
+# inside tuios: which session and workspace this pane is in
+[custom.tuios_here]
+command = 'tuios session-info -s "$TUIOS_SESSION" --json 2>/dev/null | jq -r --arg s "$TUIOS_SESSION" "\$s + \" \" + (.current_workspace|tostring) + \"/\" + (.num_workspaces|tostring)"'
+when = 'test -n "$TUIOS_SESSION"'
+shell = ["sh"]
+symbol = "tuios"
+format = '([](fg:#af87ff)[$symbol $output](fg:#1e1e1e bg:#af87ff)[](fg:#af87ff) )'
+
+# anywhere: agents that need you, finished unseen, or left you a message.
+# silent when nothing is waiting
+[custom.tuios_agents]
+command = 'tuios list-agents --json --all-sessions 2>/dev/null | jq -r "(.agents // []) as \$a | [([\$a[] | select(.needs_you)] | length | select(. > 0) | \"\(.) waiting\"), ([\$a[] | select(.finished_unread)] | length | select(. > 0) | \"\(.) done\"), ((.human_unread // 0) | select(. > 0) | \"\(.) msg\")] | if length > 0 then join(\" \") else empty end"'
+when = true
+shell = ["sh"]
+symbol = "󰚩"
+format = '([](fg:#fc1a70)[$symbol $output](fg:#1e1e1e bg:#fc1a70)[](fg:#fc1a70) )'
+
+# muted take: grey pill, coloured text. swap into any format above
 # format = '([](fg:#4a4a4a)[$symbol $output](fg:#af87ff bg:#4a4a4a)[](fg:#4a4a4a) )'
